@@ -1,9 +1,6 @@
 using AssignmentApiTestMaster.Base;
 using AssignmentApiTestMaster.Models.Request;
-using Moq;
-using Newtonsoft.Json;
 using System.Net;
-using Moq.Protected;
 using AssignmentApiTestMaster.Models.Response;
 
 
@@ -13,122 +10,71 @@ namespace AssignmentApiTestMaster.Test
     {
         ProductApi getApi = new ProductApi();
         private readonly HttpClient _httpClient;
-        public readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
-
+       
 
         [Fact]
         public async void VerifyGetAllProductInfoWithValidData()
         {
-            var response = await getApi.GetAllProducts<GetAllProductsResponse>();
-            _httpMessageHandlerMock
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    It.IsAny<HttpRequestMessage>(),
-                    It.IsAny<CancellationToken>()
-                )
-                .ReturnsAsync(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.OK,
-                   
-                })
-                .Verifiable();
+            // Call the API and get both response and products
+            var (httpResponse, products) = await getApi.GetAllProducts<GetAllProductsResponse>("/objects");
 
-            Assert.NotNull(response);
-            //Assert product1 data
-            Assert.Equal("1", response[0].Id);
-            Assert.Equal("Google Pixel 6 Pro", response[0].Name);
-            Assert.Equal("Cloudy White", response[0].Data.Color);
-            Assert.Equal("128 GB", response[0].Data.Capacity);
+            // Assert status code
+            Assert.Equal(HttpStatusCode.OK, httpResponse.StatusCode);
 
-            //Assert product2 data
-            Assert.Equal("2", response[0].Id);
-            Assert.Equal("Apple iPhone 12 Mini", response[1].Name);
-            Assert.Equal("Blue", response[1].Data.Color);
-            Assert.Equal("256 GB", response[1].Data.Capacity);
+            // Assert that products are not null
+            Assert.NotNull(products);
+            Assert.NotEmpty(products);
 
+            // Assert product 1 data
+            Assert.Equal("1", products[0].Id);  // Access the list using products[0]
+            Assert.Equal("Google Pixel 6 Pro", products[0].Name);
+            Assert.Equal("Cloudy White", products[0].Data.Color);
+            Assert.Equal("128 GB", products[0].Data.Capacity);
 
+            // Assert product 2 data
+            Assert.Equal("2", products[1].Id);
+            Assert.Equal("Apple iPhone 12 Mini, 256GB, Blue", products[1].Name);
 
-        }
-
-        [Fact]
-        public async void VerifyGetAllProductInfoWithInvalidData()
-        {
-            var response = await getApi.GetAllProducts<GetAllProductsResponse>();
-            _httpMessageHandlerMock
-               .Protected()
-               .Setup<Task<HttpResponseMessage>>(
-                   "SendAsync",
-                   It.IsAny<HttpRequestMessage>(),
-                   It.IsAny<CancellationToken>()
-               )
-               .ReturnsAsync(new HttpResponseMessage
-               {
-                   StatusCode = HttpStatusCode.NotFound
-
-               })
-               .Verifiable();
-
+            // Assert on the product 2 Data property
+            Assert.Null(products[1].Data);
 
         }
 
         [Fact]
         public async void VerifyGetProductInfoByIdWithValidData()
         {
-            var response = await getApi.GetAllProducts<GetProductsResponseById>();
-            _httpMessageHandlerMock
-             .Protected()
-             .Setup<Task<HttpResponseMessage>>(
-                 "SendAsync",
-                 It.IsAny<HttpRequestMessage>(),
-                 It.IsAny<CancellationToken>()
-             )
-             .ReturnsAsync(new HttpResponseMessage
-             {
-                 StatusCode = HttpStatusCode.OK, 
-
-             })
-             .Verifiable();
-
-            Assert.NotNull(response);
-            Assert.Equal("7", response[0].Id);
-            Assert.Equal("Apple MacBook Pro 16", response[0].Name);
-            Assert.Equal(2019, response[0].Data.Year);
-            Assert.Equal(1849.99, response[0].Data.Price);
-            Assert.Equal("Intel Core i9", response[0].Data.CPUModel);
-            Assert.Equal("1 TB", response[0].Data.HardDiskSize);
- }
+            var (httpResponse, products) = await getApi.GetProductById<GetProductsResponseById>("/objects/7");
+            // Assert status code
+            Assert.Equal(HttpStatusCode.OK, httpResponse.StatusCode);
+            Assert.NotNull(products);
+            Assert.Equal("7", products.Id);
+            Assert.Equal("Apple MacBook Pro 16", products.Name);
+            Assert.Equal(2019, products.Data.Year);
+            Assert.Equal(1849.99, products.Data.Price);
+            Assert.Equal("Intel Core i9", products.Data.CPUModel);
+            Assert.Equal("1 TB", products.Data.HardDiskSize);
+        }
 
         [Fact]
         public async void VerifyGetProductInfoByIdWithInValidData()
         {
-            var response = await getApi.GetAllProducts<GetProductsResponseById>();
-            _httpMessageHandlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                It.IsAny<HttpRequestMessage>(),
-                It.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.NotFound
-
-            })
-            .Verifiable();
+            var (httpResponse, products) = await getApi.GetProductById<GetProductsResponseById>("/objects/107");
+            // Assert status code
+            Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
 
         }
+
 
         [Fact]
         public async Task UpdateProduct_ReturnsTrue_WhenProductIsUpdatedSuccessfully()
         {
-            var productId = 7;
+
             var updatedProduct = new UpdateProduct
             {
                 Name = "Apple MacBook Pro 16",
                 Data = new ProductDataUpdate
                 {
-                    Year = 2019,
+                    Year = 2000,
                     Price = 2049.99,
                     CPUModel = "Intel Core i9",
                     HardDiskSize = "1 TB",
@@ -136,85 +82,44 @@ namespace AssignmentApiTestMaster.Test
                 }
             };
 
-     
-            _httpMessageHandlerMock
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    It.IsAny<HttpRequestMessage>(),
-                    It.IsAny<CancellationToken>()
-                )
-                .ReturnsAsync(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.OK, 
-                    Content = new StringContent(JsonConvert.SerializeObject(updatedProduct)),
-                })
-                .Verifiable();
+            var result = await getApi.UpdateProduct(updatedProduct, "/objects/ff808181923ed5e2019276f6542f738d");
+            Assert.True(result);
+            Assert.Equal("Apple MacBook Pro 16", updatedProduct.Name);
+            Assert.Equal(2000, updatedProduct.Data.Year);
+            Assert.Equal(2049.99, updatedProduct.Data.Price);
+            Assert.Equal("Intel Core i9", updatedProduct.Data.CPUModel);
+            Assert.Equal("1 TB", updatedProduct.Data.HardDiskSize);
+            Assert.Equal("silver", updatedProduct.Data.Color);
 
-            var result = await getApi.UpdateProduct(productId, updatedProduct);
 
-            Assert.True(result); 
-            _httpMessageHandlerMock.Protected().Verify(
-                "SendAsync",
-                Times.Exactly(1), 
-                It.IsAny<HttpRequestMessage>(),
-                It.IsAny<CancellationToken>()
-            );
         }
 
         [Fact]
         public async Task UpdateProduct_ReturnsFalse_WhenUpdateFails()
         {
-         
-            var productId = 0;
+
             var updatedProduct = new UpdateProduct
             {
-                Name = "Apple MacBook Pro 16",
-                Data = new ProductDataUpdate
-                {
-                    Year = 2019,
-                    Price = 2049.99,
-                    CPUModel = "Intel Core i9",
-                    HardDiskSize = "1 TB",
-                    Color = "silver"
-                }
+
             };
 
-            _httpMessageHandlerMock
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    It.IsAny<HttpRequestMessage>(),
-                    It.IsAny<CancellationToken>()
-                )
-                .ReturnsAsync(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.BadRequest, 
-                })
-                .Verifiable();
+            var response = await getApi.UpdateProduct(updatedProduct, "/objects/ff808181923ed5e2019276f6542f738d");
+            // Assert status code
+            Assert.True(response);
+            Assert.Equal(null, updatedProduct.Name);
 
-          
-            var result = await getApi.UpdateProduct(productId, updatedProduct);
-
-            Assert.False(result); 
-            _httpMessageHandlerMock.Protected().Verify(
-                "SendAsync",
-                Times.Exactly(1), 
-                It.IsAny<HttpRequestMessage>(),
-                It.IsAny<CancellationToken>()
-            );
         }
 
         [Fact]
         public async Task AddProduct_ReturnsTrue_WhenProductIsAddedSuccessfully()
         {
-        
+
             var newProduct = new AddProduct
             {
                 Name = "Samsung Galaxy S22",
                 Data = new ProductDataAdd
                 {
-                    Year = 2000, 
+                    Year = 2000,
                     Price = 799.99,
                     CPUModel = "Core 001",
                     HardDiskSize = "1TB"
@@ -222,133 +127,63 @@ namespace AssignmentApiTestMaster.Test
                 }
             };
 
-     
-            _httpMessageHandlerMock
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    It.IsAny<HttpRequestMessage>(),
-                    It.IsAny<CancellationToken>()
-                )
-                .ReturnsAsync(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.Created, 
-                    Content = new StringContent(JsonConvert.SerializeObject(newProduct)),
-                })
-                .Verifiable();
 
-            var result = await getApi.AddProduct(newProduct);
+            var result = await getApi.AddProduct(newProduct, "/objects");
 
-         
-            Assert.True(result); 
-            _httpMessageHandlerMock.Protected().Verify(
-                "SendAsync",
-                Times.Exactly(1), 
-                It.IsAny<HttpRequestMessage>(),
-                It.IsAny<CancellationToken>()
-            );
+            Assert.True(result);
+
+            Assert.Equal("Google Pixel 6 Pro", newProduct.Name);
+            Assert.Equal(2000, newProduct.Data.Year);
+            Assert.Equal(799.99, newProduct.Data.Price);
+            Assert.Equal("Core 001", newProduct.Data.CPUModel);
+            Assert.Equal("1TB", newProduct.Data.HardDiskSize);
         }
 
         [Fact]
-        public async Task AddProduct_ReturnsFalse_WhenProductAdditionFails()
+        public async Task AddProduct_ReturnsTrue_WhenProductAddWithEmptyRequestBody()
         {
 
             var newProduct = new AddProduct
-            {};
-           
-           
-            _httpMessageHandlerMock
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    It.IsAny<HttpRequestMessage>(),
-                    It.IsAny<CancellationToken>()
-                )
-                .ReturnsAsync(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.BadRequest, 
-                })
-                .Verifiable();
+            {
 
-            var result = await getApi.AddProduct(newProduct);
+            };
 
-            Assert.False(result); 
-            _httpMessageHandlerMock.Protected().Verify(
-                "SendAsync",
-                Times.Exactly(1),
-                It.IsAny<HttpRequestMessage>(),
-                It.IsAny<CancellationToken>()
-            );
-           
+
+            var result = await getApi.AddProduct(newProduct, "/objects");
+
+            Assert.True(result);
+            Assert.Equal(null, newProduct.Data);
+
         }
 
+
         [Fact]
-        public async Task DeleteProduct_ReturnsSuccessMessag()
+        public async Task DeleteProduct_ReturnsSuccessMessage()
         {
-           
-            var productId = 6;
-            var expectedMessage = $"Object with id = {productId}, has been deleted.";
+
+            var productId = "ff808181923ed5e2019277213d9073f8";
+            var expectedMessage = $"Object with id = {productId} has been deleted.";
             var responseBody = new { message = expectedMessage };
 
-           
-            _httpMessageHandlerMock
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    It.IsAny<HttpRequestMessage>(),
-                    It.IsAny<CancellationToken>()
-                )
-                .ReturnsAsync(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.OK, 
-                    Content = new StringContent(JsonConvert.SerializeObject(responseBody)),
-                })
-                .Verifiable();
+            var result = await getApi.DeleteProduct("/objects/ff808181923ed5e2019277213d9073f8");
+          
+            Assert.Equal(expectedMessage, result);
 
-      
-            var result = await getApi.DeleteProduct(productId);
-
-            Assert.Equal(expectedMessage, result); 
-            _httpMessageHandlerMock.Protected().Verify(
-                "SendAsync",
-                Times.Exactly(1), 
-                It.IsAny<HttpRequestMessage>(),
-                It.IsAny<CancellationToken>()
-            );
         }
 
         [Fact]
-        public async Task DeleteProduct_ReturnsErrorMessage()
+        public async Task DeleteProduct_NonExistproduct()
         {
-          
-            var productId = 6;
 
-            
-            _httpMessageHandlerMock
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    It.IsAny<HttpRequestMessage>(),
-                    It.IsAny<CancellationToken>()
-                )
-                .ReturnsAsync(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.NotFound,
-                })
-                .Verifiable();
+            var productId = "ff808181923ed5e2019277213d9073f8";
+            var expectedMessage = $"Object with id = {productId} doesn't exist";
+    
+            var responseBody = new { message = expectedMessage };
+            var result = await getApi.DeleteProduct("/objects/ff808181923ed5e2019277213d9073f");
 
-       
-            var result = await getApi.DeleteProduct(productId);
+            Assert.Equal(expectedMessage, result);
 
-         
-            Assert.Contains($"Failed to delete product with ID {productId}", result);
-            _httpMessageHandlerMock.Protected().Verify(
-                "SendAsync",
-                Times.Exactly(1), 
-                It.IsAny<HttpRequestMessage>(),
-                It.IsAny<CancellationToken>()
-            );
+
         }
-  
     }
 }

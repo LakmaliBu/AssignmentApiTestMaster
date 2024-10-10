@@ -1,8 +1,6 @@
-﻿using AssignmentApiTestMaster.Config;
-using AssignmentApiTestMaster.Models.Request;
+﻿using AssignmentApiTestMaster.Models.Request;
 using AssignmentApiTestMaster.Models.Response;
 using AssignmentApiTestMaster.Utilities;
-using log4net;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -15,47 +13,52 @@ namespace AssignmentApiTestMaster.Base
         private HttpClient restClient = new HttpClient();
         ApiHandler apiHandler = new ApiHandler();
        
-        public async Task<List<T>> GetAllProducts<T>()
+        public async Task<(HttpResponseMessage, List<T>)> GetAllProducts<T>(string endpoint)
         {
-            var response = await restClient.GetAsync(apiHandler.BuildUrl("/objects"));
-            var context = await response.Content.ReadAsStringAsync();
+            var response = await restClient.GetAsync(apiHandler.BuildUrl(endpoint));
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            List<T> products;
 
             try
             {
-                var responseModel = JsonConvert.DeserializeObject<List<T>>(context);
-                return responseModel;
+               products = JsonConvert.DeserializeObject<List<T>>(jsonResponse);
+              
+
             }
             catch (Exception ex)
             {
                 throw ex;
-                Logger.LogError("Error while getting all product data" + ex);
-
+                Logger.LogError("Response is empty" + ex);
+              
             }
 
+            return (response, products);
         }
 
-        public async Task<T> GetProductById<T>()
+
+
+
+        public async Task<(HttpResponseMessage, T)> GetProductById<T>(string endpoint)
         {
-
-            var response = await restClient.GetAsync(apiHandler.BuildUrl("/objects/7"));
-            var context = await response.Content.ReadAsStringAsync();
-
+            var response = await restClient.GetAsync(apiHandler.BuildUrl(endpoint));
+            string jsonResponse = await response.Content.ReadAsStringAsync();
             try
             {
-                var responseModel = JsonConvert.DeserializeObject<T>(context);
-                return responseModel;
+                var product = JsonConvert.DeserializeObject<T>(jsonResponse);
+                return (response, product);
             }
             catch (Exception ex)
             {
-                Logger.LogError("Error while getting product data by Id"+ ex);
-                return default(T);
+                Logger.LogError("Error while getting product data by Id" + ex);
+                return default;
             }
-
         }
 
-        public async Task<bool> AddProduct(AddProduct newProduct)
+
+
+        public async Task<bool> AddProduct(AddProduct newProduct, string endpoint)
         {
-            var requestUrl = apiHandler.BuildUrl("/objects");
+            var requestUrl = apiHandler.BuildUrl(endpoint);
 
             try
             {
@@ -74,16 +77,17 @@ namespace AssignmentApiTestMaster.Base
             }
         }
 
-        public async Task<bool> UpdateProduct(int productId, UpdateProduct updatedProduct)
+        public async Task<bool> UpdateProduct(UpdateProduct updatedProduct, string endpoint)
         {
-            var requestUrl = apiHandler.BuildUrl("/objects/7");
+
+            var requestUrl = apiHandler.BuildUrl(endpoint);
 
             try
             {
                 var jsonProduct = JsonConvert.SerializeObject(updatedProduct);
                 var content = new StringContent(jsonProduct, Encoding.UTF8, "application/json");
 
-               
+
                 var response = await restClient.PutAsync(requestUrl, content);
 
                 return response.IsSuccessStatusCode;
@@ -91,15 +95,15 @@ namespace AssignmentApiTestMaster.Base
             catch (HttpRequestException ex)
             {
                 Logger.LogError("Error while updating product" + ex);
-                return false; 
+                return false;
             }
 
         }
 
 
-        public async Task<string> DeleteProduct(int productId)
+        public async Task<string> DeleteProduct(string endpoint)
         {
-            var requestUrl = apiHandler.BuildUrl("/objects/${productId}");
+            var requestUrl = apiHandler.BuildUrl(endpoint);
 
             try
             {
@@ -114,13 +118,13 @@ namespace AssignmentApiTestMaster.Base
                 }
                 else
                 {
-                    return $"Failed to delete product with ID {productId}. Status code: {response.StatusCode}";
+                    return $"Failed to delete product. Status code: {response.StatusCode}";
                 }
             }
             catch (HttpRequestException ex)
             {
                 Logger.LogError("Error while deleting prodcut" + ex);
-                return $"{productId}: {ex.Message}";
+                return $"{ex.Message}";
             }
         }
     }

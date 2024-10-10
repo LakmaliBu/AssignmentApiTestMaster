@@ -1,1 +1,1 @@
-# AssignmentApiTestMaster
+# Run ProductTest.cs to execute all test cases

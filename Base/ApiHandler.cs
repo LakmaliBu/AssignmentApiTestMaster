@@ -4,8 +4,11 @@ namespace AssignmentApiTestMaster.Base
 {
     public class ApiHandler
     {
-     
-        private string baseUrl = PropertyFileReader.properties["baseApiurl"];
+        
+    
+        private string baseUrl = "https://api.restful-api.dev";
+        
+        //PropertyFileReader.properties["baseApiurl"];
 
 
         // Common method to build the URL
@@ -13,6 +16,7 @@ namespace AssignmentApiTestMaster.Base
         {
             // Construct the base URL
             UriBuilder builder = new UriBuilder($"{baseUrl}{endpoint}");
+            
             return builder.Uri.ToString();
         }
 

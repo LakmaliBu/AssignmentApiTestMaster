@@ -8,7 +8,7 @@ namespace AssignmentApiTestMaster.Config
     {
         public static IDictionary<string, string> properties;
 
-        public void Read()
+        public static IDictionary<string,string> Read()
         {
             string file = "config.properties";
             try
@@ -25,6 +25,7 @@ namespace AssignmentApiTestMaster.Config
 
 
             }
+            return properties;
         }
     }
 }
