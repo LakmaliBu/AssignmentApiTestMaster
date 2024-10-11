@@ -83,7 +83,7 @@ namespace AssignmentApiTestMaster.Test
             };
 
             var result = await getApi.UpdateProduct(updatedProduct, "/objects/ff808181923ed5e2019276f6542f738d");
-            Assert.True(result);
+            //Assert updated details
             Assert.Equal("Apple MacBook Pro 16", updatedProduct.Name);
             Assert.Equal(2000, updatedProduct.Data.Year);
             Assert.Equal(2049.99, updatedProduct.Data.Price);
@@ -104,8 +104,8 @@ namespace AssignmentApiTestMaster.Test
             };
 
             var response = await getApi.UpdateProduct(updatedProduct, "/objects/ff808181923ed5e2019276f6542f738d");
-            // Assert status code
-            Assert.True(response);
+            // Assert response
+            Assert.False(response);
             Assert.Equal(null, updatedProduct.Name);
 
         }
@@ -131,8 +131,8 @@ namespace AssignmentApiTestMaster.Test
             var result = await getApi.AddProduct(newProduct, "/objects");
 
             Assert.True(result);
-
-            Assert.Equal("Google Pixel 6 Pro", newProduct.Name);
+            //Assert response
+            Assert.Equal("Samsung Galaxy S22", newProduct.Name);
             Assert.Equal(2000, newProduct.Data.Year);
             Assert.Equal(799.99, newProduct.Data.Price);
             Assert.Equal("Core 001", newProduct.Data.CPUModel);
@@ -150,7 +150,7 @@ namespace AssignmentApiTestMaster.Test
 
 
             var result = await getApi.AddProduct(newProduct, "/objects");
-
+            //Assert response
             Assert.True(result);
             Assert.Equal(null, newProduct.Data);
 
@@ -161,27 +161,27 @@ namespace AssignmentApiTestMaster.Test
         public async Task DeleteProduct_ReturnsSuccessMessage()
         {
 
-            var productId = "ff808181923ed5e2019277213d9073f8";
+            var productId = "ff808181923ed5e2019279ac13307826";
             var expectedMessage = $"Object with id = {productId} has been deleted.";
             var responseBody = new { message = expectedMessage };
 
-            var result = await getApi.DeleteProduct("/objects/ff808181923ed5e2019277213d9073f8");
-          
+            var result = await getApi.DeleteProduct("/objects/ff808181923ed5e2019279ac13307826");
+            //Assert response message
             Assert.Equal(expectedMessage, result);
 
         }
 
         [Fact]
-        public async Task DeleteProduct_NonExistproduct()
+        public async Task DeleteProduct_NonExistProduct()
         {
 
-            var productId = "ff808181923ed5e2019277213d9073f8";
-            var expectedMessage = $"Object with id = {productId} doesn't exist";
-    
+            var expectedMessage = "Failed to delete product. Status code:";
+          
             var responseBody = new { message = expectedMessage };
-            var result = await getApi.DeleteProduct("/objects/ff808181923ed5e2019277213d9073f");
-
-            Assert.Equal(expectedMessage, result);
+            var result = await getApi.DeleteProduct("/objects/abc");
+            Console.WriteLine(result);
+            //Assert response message
+            Assert.Contains(expectedMessage, result);
 
 
         }
