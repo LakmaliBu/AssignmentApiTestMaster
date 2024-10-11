@@ -1,6 +1,8 @@
 ﻿using AssignmentApiTestMaster.Models.Request;
 using AssignmentApiTestMaster.Models.Response;
 using AssignmentApiTestMaster.Utilities;
+using Authlete.Dto;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -56,28 +58,28 @@ namespace AssignmentApiTestMaster.Base
 
 
 
-        public async Task<bool> AddProduct(AddProduct newProduct, string endpoint)
+        public async Task<string> AddProduct(AddProduct newProduct, string endpoint)
         {
             var requestUrl = apiHandler.BuildUrl(endpoint);
 
             try
             {
-             
+
                 var jsonProduct = JsonConvert.SerializeObject(newProduct);
                 var content = new StringContent(jsonProduct, Encoding.UTF8, "application/json");
 
                 var response = await restClient.PostAsync(requestUrl, content);
 
-                return response.IsSuccessStatusCode;
+                return newProduct.Id;
             }
             catch (HttpRequestException ex)
             {
                 Logger.LogError("Error while adding product" + ex);
-                return false; 
+                return null;
             }
         }
 
-        public async Task<bool> UpdateProduct(UpdateProduct updatedProduct, string endpoint)
+        public async Task<string> UpdateProduct(UpdateProduct updatedProduct, string endpoint)
         {
 
             var requestUrl = apiHandler.BuildUrl(endpoint);
@@ -90,12 +92,12 @@ namespace AssignmentApiTestMaster.Base
 
                 var response = await restClient.PutAsync(requestUrl, content);
 
-                return response.IsSuccessStatusCode;
+                return updatedProduct.Id;
             }
             catch (HttpRequestException ex)
             {
                 Logger.LogError("Error while updating product" + ex);
-                return false;
+                return null;
             }
 
         }
@@ -109,12 +111,10 @@ namespace AssignmentApiTestMaster.Base
             {
                 var response = await restClient.DeleteAsync(requestUrl);
 
-                // Check if the response was successful (status code)
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var responseMessage = JsonConvert.DeserializeObject<DeleteResponse>(responseContent);
-                    return responseMessage.Message;
+                    return responseContent;
                 }
                 else
                 {
@@ -127,8 +127,11 @@ namespace AssignmentApiTestMaster.Base
                 return $"{ex.Message}";
             }
         }
+
+        
     }
 
+  
 
 
 }

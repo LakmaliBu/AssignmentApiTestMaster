@@ -9,6 +9,7 @@ namespace AssignmentApiTestMaster.Models.Request
 {
     public class UpdateProduct
     {
+        public string Id { get; set; }
         public string Name { get; set; }
         public ProductDataUpdate Data { get; set; }
     }
