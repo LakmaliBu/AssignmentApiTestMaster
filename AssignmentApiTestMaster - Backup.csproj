@@ -10,14 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="AssignmentApiTestMaster.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Authlete.Authlete" Version="1.5.0" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="log4net" Version="3.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
@@ -25,5 +23,11 @@
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
+
+  <ItemGroup>
+  <None Update="config.properties">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
 
 </Project>

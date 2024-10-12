@@ -1,22 +1,23 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace AssignmentApiTestMaster.Models.Request
 {
     public class UpdateProduct
     {
+        [JsonProperty("id")]
         public string Id { get; set; }
+        [JsonProperty("name")]
         public string Name { get; set; }
+        [JsonProperty("data")]
         public ProductDataUpdate Data { get; set; }
     }
 
     public class ProductDataUpdate
     {
+        [JsonProperty("year")]
         public int Year { get; set; }
+        [JsonProperty("price")]
         public double Price { get; set; }
 
         [JsonProperty("CPU model")] // Mapping to the property with a space in JSON
@@ -24,7 +25,7 @@ namespace AssignmentApiTestMaster.Models.Request
 
         [JsonProperty("Hard disk size")] // Mapping to the property with a space in JSON
         public string HardDiskSize { get; set; }
-
+        [JsonProperty("color")]
         public string Color { get; set; }
     }
 }
